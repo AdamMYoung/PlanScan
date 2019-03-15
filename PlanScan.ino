@@ -42,6 +42,7 @@ Serial.begin(9600); // Starts the serial communication
 
 void loop() {
   if((digitalRead(buttonPin) == HIGH) && !triggered) {
+     clearDisplay();
      takeReading();
      triggered = true;
   }
@@ -51,33 +52,39 @@ void loop() {
     triggerServo(FORWARD);
 }
 
-void writeToDisplay(int distance) {
+void clearDisplay() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Distance:");
+}
+
+void writeToDisplay(int distance, String pos) {
   lcd.setCursor(0, 1);
-  lcd.print(distance + " cm");
+  lcd.print(pos);
+  lcd.print(":");
+  lcd.print(distance);
+  lcd.print(" cm ");
 }
 
 void takeReading() {
   triggerServo(FORWARD);
-  writeToDisplay(getDistance());
+  writeToDisplay(getDistance(), "F");
   delay(2000);
   
   triggerServo(RIGHT);
-  writeToDisplay(getDistance());
+  writeToDisplay(getDistance(), "R");
   delay(2000);
 
   triggerServo(BACK);
-  writeToDisplay(getDistance());
+  writeToDisplay(getDistance(), "B");
   delay(2000);
   
   triggerServo(LEFT);
-  writeToDisplay(getDistance());
+  writeToDisplay(getDistance(), "L");
   delay(2000);
 
   triggerServo(UP);
-  writeToDisplay(getDistance());
+  writeToDisplay(getDistance(), "U");
   delay(2000);
 }
 
