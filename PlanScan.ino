@@ -1,10 +1,12 @@
 #include <Servo.h> 
 #include <LiquidCrystal.h>
+#include <NewPing.h>
 
 // defines pins numbers
 const int triggerPin = 9;
 const int echoPin = 10;
 const int buttonPin = 8;
+const int maxDistance = 500;
 
 //Servo
 const int horizontalServoPin = 12;
@@ -22,6 +24,7 @@ enum servoPosition {FORWARD, BACK, LEFT, RIGHT, UP};
 
 Servo horizontalServo;
 Servo verticalServo;
+NewPing sonar(triggerPin, echoPin, maxDistance);
 LiquidCrystal lcd(rsPin, enablePin, d4, d5, d6, d7);
 
 // defines variables
@@ -119,24 +122,9 @@ void triggerServo(servoPosition position) {
 
 //Gets the measured distance from the ultrasonic sensor.
 int getDistance() {
-  int distance = 0;
-  long duration = 0;
+  delay(50);
   
-    // Clears the trigPin
-  digitalWrite(triggerPin, LOW);
-  delayMicroseconds(2);
-  
-  // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(triggerPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(triggerPin, LOW);
-  
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(echoPin, HIGH);
-  
-  // Calculating the distance
-  distance = duration*0.034/2;
-  
+  int distance = sonar.ping_cm();
   // Prints the distance on the Serial Monitor
   Serial.println(distance);
   return distance;
