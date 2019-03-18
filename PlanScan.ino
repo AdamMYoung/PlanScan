@@ -31,16 +31,16 @@ LiquidCrystal lcd(rsPin, enablePin, d4, d5, d6, d7);
 bool triggered = false;
 
 void setup() {
-pinMode(triggerPin, OUTPUT); // Sets the trigPin as an Output
-pinMode(echoPin, INPUT); // Sets the echoPin as an Input
-pinMode(buttonPin, INPUT); // Sets the buttonPin as an Input.
-
-horizontalServo.attach(horizontalServoPin);
-verticalServo.attach(verticalServoPin);
-
-lcd.begin(16, 2);
-
-Serial.begin(9600); // Starts the serial communication
+  pinMode(triggerPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+  pinMode(buttonPin, INPUT); // Sets the buttonPin as an Input.
+  
+  horizontalServo.attach(horizontalServoPin);
+  verticalServo.attach(verticalServoPin);
+  
+  lcd.begin(16, 2);
+  
+  Serial.begin(9600); // Starts the serial communication
 }
 
 void loop() {
