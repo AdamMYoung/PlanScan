@@ -1,8 +1,9 @@
 #include <Servo.h> 
 #include <LiquidCrystal.h>
 #include <NewPing.h>
+#include <Encoder.h>
 
-// defines pins numbers
+// Ultrasonic
 const int triggerPin = 9;
 const int echoPin = 10;
 const int buttonPin = 8;
@@ -20,15 +21,21 @@ const int d5 = 5;
 const int d6 = 6;
 const int d7 = 7;
 
+//Encoder
+const int encoderPinA = A0;
+const int encoderPinB = A1;
+
 enum servoPosition {FORWARD, BACK, LEFT, RIGHT, UP};
 
 Servo horizontalServo;
 Servo verticalServo;
 NewPing sonar(triggerPin, echoPin, maxDistance);
+Encoder encoder(encoderPinA, encoderPinB);
 LiquidCrystal lcd(rsPin, enablePin, d4, d5, d6, d7);
 
 // defines variables
 bool triggered = false;
+long encoderVal = -999;
 
 void setup() {
   pinMode(triggerPin, OUTPUT); // Sets the trigPin as an Output
@@ -39,11 +46,14 @@ void setup() {
   verticalServo.attach(verticalServoPin);
   
   lcd.begin(16, 2);
+
+  encoder.write(0);
   
   Serial.begin(9600); // Starts the serial communication
 }
 
 void loop() {
+  readEncoder();
   if((digitalRead(buttonPin) == HIGH) && !triggered) {
      clearDisplay();
      takeReading();
@@ -53,6 +63,16 @@ void loop() {
   if(digitalRead(buttonPin) == LOW)
     triggered = false;
     triggerServo(FORWARD);
+}
+
+void readEncoder(){
+  long newVal = encoder.read() / 4;
+  if(encoderVal != newVal){
+    Serial.print("Encoder Val = ");
+    Serial.print(newVal);
+    Serial.println();
+    encoderVal = newVal;
+  }
 }
 
 void clearDisplay() {
