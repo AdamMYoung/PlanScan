@@ -3,44 +3,9 @@
 #include <NewPing.h>
 #include <Encoder.h>
 
-// Ultrasonic
-const int triggerPin = 9;
-const int echoPin = 10;
-const int buttonPin = 8;
-const int maxDistance = 500;
-
-//Servo
-const int horizontalServoPin = 12;
-const int verticalServoPin = 11;
-
-//LCD Display
-const int rsPin = 2;
-const int enablePin = 3;
-const int d4 = 4;
-const int d5 = 5;
-const int d6 = 6;
-const int d7 = 7;
-
-//Menu
-const int menuLeftButton = 0;
-const int menuRightButton = 1;
-const int menuSelectButton = 13;
-
-//Encoder
-const int encoderPinA = A0;
-const int encoderPinB = A1;
-
-enum servoPosition {FORWARD, BACK, LEFT, RIGHT, UP};
-
-Servo horizontalServo;
-Servo verticalServo;
-NewPing sonar(triggerPin, echoPin, maxDistance);
-Encoder encoder(encoderPinA, encoderPinB);
-LiquidCrystal lcd(rsPin, enablePin, d4, d5, d6, d7);
-
-// defines variables
-bool triggered = false;
-
+/**
+ * Class to manage an ultrasonic sensor data.
+ */
 class Ultrasonic {
   const int triggerPin;
   const int echoPin;
@@ -48,11 +13,18 @@ class Ultrasonic {
   const int maxDistance = 500;
 
   public:
+    /**
+     * Instantiates a new Ultrasonic object, using the trigger and echo pins to instantiate
+     * a NewPing object.
+     */
     Ultrasonic(int trigger, int echo): triggerPin(trigger), echoPin(echo), sonar(trigger, echo, maxDistance) {  
        pinMode(triggerPin, OUTPUT); // Sets the trigPin as an Output
        pinMode(echoPin, INPUT); // Sets the echoPin as an Input    
     }
 
+    /**
+     * Returns the current distance from the ultrasonic sensor in centimeters.
+     */
     int takeReading() {
       int distance = sonar.ping_cm();
       // Prints the distance on the Serial Monitor
@@ -61,31 +33,78 @@ class Ultrasonic {
     }
 };
 
+/**
+ * LiquidCrystal library wrapper to clear and format an LCD display.
+ */
 class Display {
   const LiquidCrystal lcd;
 
-  public :
+  public:
+    /**
+     * Instantiates a new Display object, using the provided pins 
+     * to instantiate a LiquidCrystal object.
+     */
     Display(int rs, int enable, int d4, int d5, int d6, int d7) : 
     lcd(rs, enable, d4, d5, d6, d7) {
       lcd.begin(16, 2);
-    
     }
-     
-  void write(int distance, String pos) {
-    lcd.setCursor(0, 1);
-    lcd.print(pos);
-    lcd.print(":");
-    lcd.print(distance);
-    lcd.print(" cm ");
-  }
 
-  void clear() {
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Distance:");
+   /*
+    * Writes the specified distance to the LCD at the start of the 2nd line.
+    */
+    void write(int distance, String pos) {
+      lcd.setCursor(0, 1);
+      lcd.print(pos);
+      lcd.print(":");
+      lcd.print(distance);
+      lcd.print(" cm ");
+    }
+
+    /**
+     * Resets the LCD display, then writes the "Distance" value to the first line.
+     */
+    void clear() {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Distance:");
+    }
+};
+
+/**
+ * Class to wrap the Encoder library.
+ */
+class RotaryEncoder {
+  int pinA;
+  int pinB;
+  long encoderVal = -999;
+  Encoder encoder;
+
+  public:
+    /**
+     * Instantiates a new RotaryEncoder object, using the provied pins to
+     * instantiate a new Encoder object.
+     */
+    RotaryEncoder(int pinA, int pinB): pinA(pinA), pinB(pinB), encoder(pinA, pinB) {
+    }
+    
+    /**
+     *  Reads the current encoder value, writing to the serial output
+     *  if it has changed since the last reading.
+     */
+    int read() {
+      long newVal = encoder.read() / 4;
+      if(encoderVal != newVal){
+      Serial.print("Encoder Val = ");
+      Serial.print(newVal);
+      Serial.println();
+      encoderVal = newVal;
+    }
   }
 };
 
+/**
+ * Contoller class for handling sensor control.
+ */
 class SensorController {
   const Servo horizontalServo;
   const Servo verticalServo;
@@ -94,9 +113,14 @@ class SensorController {
   const Display display;
   bool isReading = false;
   
-  enum servoPosition {FORWARD, BACK, LEFT, RIGHT, UP};
+  enum ServoPosition {FORWARD, BACK, LEFT, RIGHT, UP};
 
   public :
+    /*
+     * Instantiates a new SensorController object, using the provided pins to 
+     * instantiate Servo objects, Ultrasonic objects for data acquisition and a Display
+     * object for data output.
+     */
     SensorController(int hServo, int vServo, Ultrasonic sensorA, Ultrasonic sensorB, Display disp):
     ultrasonicSensorA(sensorA), ultrasonicSensorB(sensorB), display(disp)
     {
@@ -104,8 +128,14 @@ class SensorController {
       verticalServo.attach(vServo);
     }
 
+    /**
+     * Starts the data collection, iterating through each possible direction and
+     * outputting the results to the display.
+     */
     void startDataCollection() {
       isReading = true;
+      display.clear();
+      
       setServoPosition(FORWARD);
       display.write(ultrasonicSensorA.takeReading(), "F");
       delay(2000);
@@ -128,12 +158,20 @@ class SensorController {
       isReading = false;
     }
 
-    void isTakingReading() {
+    /**
+     * Returns true if the controller is currently taking readings.
+     */
+    bool isTakingReading() {
       return isReading;
     }
 
   private:
-    void setServoPosition(servoPosition position) {
+
+    /**
+     * Sets the direction of the ultrasonic sensor based on the position
+     * enumerated type passed.
+     */
+    void setServoPosition(ServoPosition position) {
       switch(position) {
          case FORWARD: 
             horizontalServo.write(90);
@@ -163,41 +201,32 @@ class SensorController {
     }
 };
 
-class RotaryEncoder {
-  int pinA;
-  int pinB;
-  long encoderVal = -999;
-  Encoder encoder;
+//Menu
+const int menuLeftButton = 0;
+const int menuRightButton = 1;
+const int menuSelectButton = 13;
+const int triggerButtonPin = 12;
 
-  public:
-    RotaryEncoder(int pinA, int pinB): pinA(pinA), pinB(pinB), encoder(pinA, pinB) {
-    }
+//Ultrasonic Sensors.
+Ultrasonic ultrasonicA(9, 10);
+Ultrasonic ultrasonicB(9, 10); //This will need changing once pins have been sorted out.
 
-    int read() {
-      long newVal = encoder.read() / 4;
-      if(encoderVal != newVal){
-      Serial.print("Encoder Val = ");
-      Serial.print(newVal);
-      Serial.println();
-      encoderVal = newVal;
-    }
-  }
-};
+//Display
+Display displayA(2,3,4,5,6,7);
+
+//Encoder
+RotaryEncoder encoderA(A0, A1);
+
+//Controllers
+SensorController sensorController(12, 11, ultrasonicA, ultrasonicB, displayA);
 
 void setup() {
-  pinMode(buttonPin, INPUT); // Sets the buttonPin as an Input.
+  pinMode(triggerButtonPin, INPUT); // Sets the buttonPin as an Input.
   Serial.begin(9600); // Starts the serial communication
 }
 
 void loop() {
-  readEncoder();
-  if((digitalRead(buttonPin) == HIGH) && !triggered) {
-     clearDisplay();
-     takeReading();
-     
+  if((digitalRead(triggerButtonPin) == HIGH) && !sensorController.isTakingReading()) {
+    sensorController.startDataCollection();
   }
-
-  if(digitalRead(buttonPin) == LOW)
-    triggered = false;
-    triggerServo(FORWARD);
 }
