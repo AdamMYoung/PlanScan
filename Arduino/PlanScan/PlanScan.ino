@@ -40,7 +40,6 @@ LiquidCrystal lcd(rsPin, enablePin, d4, d5, d6, d7);
 
 // defines variables
 bool triggered = false;
-long encoderVal = -999;
 
 class Ultrasonic {
   const int triggerPin;
@@ -92,38 +91,45 @@ class SensorController {
   const Servo verticalServo;
   const Ultrasonic ultrasonicSensorA;
   const Ultrasonic ultrasonicSensorB;
-  const Display displayController;
+  const Display display;
+  bool isReading = false;
   
   enum servoPosition {FORWARD, BACK, LEFT, RIGHT, UP};
 
   public :
     SensorController(int hServo, int vServo, Ultrasonic sensorA, Ultrasonic sensorB, Display disp):
-    ultrasonicSensorA(sensorA), ultrasonicSensorB(sensorB), displayController(disp)
+    ultrasonicSensorA(sensorA), ultrasonicSensorB(sensorB), display(disp)
     {
       horizontalServo.attach(hServo);
       verticalServo.attach(vServo);
     }
 
     void startDataCollection() {
+      isReading = true;
       setServoPosition(FORWARD);
-      displayController.write(ultrasonicServoA.takeReading(), "F");
+      display.write(ultrasonicSensorA.takeReading(), "F");
       delay(2000);
       
       setServoPosition(RIGHT);
-      displayController.write(ultrasonicServoA.takeReading(), "R");
+      display.write(ultrasonicSensorA.takeReading(), "R");
       delay(2000);
     
       setServoPosition(BACK);
-      displayController.write(ultrasonicServoA.takeReading(), "B");
+      display.write(ultrasonicSensorA.takeReading(), "B");
       delay(2000);
       
       setServoPosition(LEFT);
-      displayController.write(ultrasonicServoA.takeReading(), "L");
+      display.write(ultrasonicSensorA.takeReading(), "L");
       delay(2000);
     
       setServoPosition(UP);
-      displayController.write(ultrasonicServoA.takeReading(), "U");
+      display.write(ultrasonicSensorA.takeReading(), "U");
       delay(2000);
+      isReading = false;
+    }
+
+    void isTakingReading() {
+      return isReading;
     }
 
   private:
@@ -157,17 +163,29 @@ class SensorController {
     }
 };
 
-class PositionController {
-  
+class RotaryEncoder {
+  int pinA;
+  int pinB;
+  long encoderVal = -999;
+  Encoder encoder;
+
+  public:
+    RotaryEncoder(int pinA, int pinB): pinA(pinA), pinB(pinB), encoder(pinA, pinB) {
+    }
+
+    int read() {
+      long newVal = encoder.read() / 4;
+      if(encoderVal != newVal){
+      Serial.print("Encoder Val = ");
+      Serial.print(newVal);
+      Serial.println();
+      encoderVal = newVal;
+    }
+  }
 };
 
 void setup() {
-  pinMode(triggerPin, OUTPUT); // Sets the trigPin as an Output
-  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
   pinMode(buttonPin, INPUT); // Sets the buttonPin as an Input.
-  
-  encoder.write(0);
-  
   Serial.begin(9600); // Starts the serial communication
 }
 
@@ -176,20 +194,10 @@ void loop() {
   if((digitalRead(buttonPin) == HIGH) && !triggered) {
      clearDisplay();
      takeReading();
-     triggered = true;
+     
   }
 
   if(digitalRead(buttonPin) == LOW)
     triggered = false;
     triggerServo(FORWARD);
-}
-
-void readEncoder(){
-  long newVal = encoder.read() / 4;
-  if(encoderVal != newVal){
-    Serial.print("Encoder Val = ");
-    Serial.print(newVal);
-    Serial.println();
-    encoderVal = newVal;
-  }
 }
