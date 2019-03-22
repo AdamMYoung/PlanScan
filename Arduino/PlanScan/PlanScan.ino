@@ -21,6 +21,11 @@ const int d5 = 5;
 const int d6 = 6;
 const int d7 = 7;
 
+//Menu
+const int menuLeftButton = 0;
+const int menuRightButton = 1;
+const int menuSelectButton = 13;
+
 //Encoder
 const int encoderPinA = A0;
 const int encoderPinB = A1;
@@ -37,16 +42,130 @@ LiquidCrystal lcd(rsPin, enablePin, d4, d5, d6, d7);
 bool triggered = false;
 long encoderVal = -999;
 
+class Ultrasonic {
+  const int triggerPin;
+  const int echoPin;
+  NewPing sonar;
+  const int maxDistance = 500;
+
+  public:
+    Ultrasonic(int trigger, int echo): triggerPin(trigger), echoPin(echo), sonar(trigger, echo, maxDistance) {  
+       pinMode(triggerPin, OUTPUT); // Sets the trigPin as an Output
+       pinMode(echoPin, INPUT); // Sets the echoPin as an Input    
+    }
+
+    int takeReading() {
+      int distance = sonar.ping_cm();
+      // Prints the distance on the Serial Monitor
+      Serial.println(distance);
+      return distance;
+    }
+};
+
+class Display {
+  const LiquidCrystal lcd;
+
+  public :
+    Display(int rs, int enable, int d4, int d5, int d6, int d7) : 
+    lcd(rs, enable, d4, d5, d6, d7) {
+      lcd.begin(16, 2);
+    
+    }
+     
+  void write(int distance, String pos) {
+    lcd.setCursor(0, 1);
+    lcd.print(pos);
+    lcd.print(":");
+    lcd.print(distance);
+    lcd.print(" cm ");
+  }
+
+  void clear() {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Distance:");
+  }
+};
+
+class SensorController {
+  const Servo horizontalServo;
+  const Servo verticalServo;
+  const Ultrasonic ultrasonicSensorA;
+  const Ultrasonic ultrasonicSensorB;
+  const Display displayController;
+  
+  enum servoPosition {FORWARD, BACK, LEFT, RIGHT, UP};
+
+  public :
+    SensorController(int hServo, int vServo, Ultrasonic sensorA, Ultrasonic sensorB, Display disp):
+    ultrasonicSensorA(sensorA), ultrasonicSensorB(sensorB), displayController(disp)
+    {
+      horizontalServo.attach(hServo);
+      verticalServo.attach(vServo);
+    }
+
+    void startDataCollection() {
+      setServoPosition(FORWARD);
+      displayController.write(ultrasonicServoA.takeReading(), "F");
+      delay(2000);
+      
+      setServoPosition(RIGHT);
+      displayController.write(ultrasonicServoA.takeReading(), "R");
+      delay(2000);
+    
+      setServoPosition(BACK);
+      displayController.write(ultrasonicServoA.takeReading(), "B");
+      delay(2000);
+      
+      setServoPosition(LEFT);
+      displayController.write(ultrasonicServoA.takeReading(), "L");
+      delay(2000);
+    
+      setServoPosition(UP);
+      displayController.write(ultrasonicServoA.takeReading(), "U");
+      delay(2000);
+    }
+
+  private:
+    void setServoPosition(servoPosition position) {
+      switch(position) {
+         case FORWARD: 
+            horizontalServo.write(90);
+            verticalServo.write(0);
+            break;
+    
+          case RIGHT: 
+            horizontalServo.write(180);
+            verticalServo.write(0);
+            break;
+    
+          case BACK: 
+            horizontalServo.write(90);
+            verticalServo.write(180);
+            break;
+    
+          case LEFT: 
+            horizontalServo.write(0);
+            verticalServo.write(0);
+            break;
+         
+          case UP: 
+            horizontalServo.write(90);
+            verticalServo.write(90);
+            break;
+      }
+    }
+};
+
+class PositionController {
+  
+};
+
 void setup() {
   pinMode(triggerPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
   pinMode(buttonPin, INPUT); // Sets the buttonPin as an Input.
   
-  horizontalServo.attach(horizontalServoPin);
-  verticalServo.attach(verticalServoPin);
-  
-  lcd.begin(16, 2);
-
   encoder.write(0);
   
   Serial.begin(9600); // Starts the serial communication
@@ -73,79 +192,4 @@ void readEncoder(){
     Serial.println();
     encoderVal = newVal;
   }
-}
-
-void clearDisplay() {
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Distance:");
-}
-
-void writeToDisplay(int distance, String pos) {
-  lcd.setCursor(0, 1);
-  lcd.print(pos);
-  lcd.print(":");
-  lcd.print(distance);
-  lcd.print(" cm ");
-}
-
-void takeReading() {
-  triggerServo(FORWARD);
-  writeToDisplay(getDistance(), "F");
-  delay(2000);
-  
-  triggerServo(RIGHT);
-  writeToDisplay(getDistance(), "R");
-  delay(2000);
-
-  triggerServo(BACK);
-  writeToDisplay(getDistance(), "B");
-  delay(2000);
-  
-  triggerServo(LEFT);
-  writeToDisplay(getDistance(), "L");
-  delay(2000);
-
-  triggerServo(UP);
-  writeToDisplay(getDistance(), "U");
-  delay(2000);
-}
-
-void triggerServo(servoPosition position) {
-  switch(position) {
-     case FORWARD: 
-        horizontalServo.write(90);
-        verticalServo.write(0);
-        break;
-
-      case RIGHT: 
-        horizontalServo.write(180);
-        verticalServo.write(0);
-        break;
-
-      case BACK: 
-        horizontalServo.write(90);
-        verticalServo.write(180);
-        break;
-
-      case LEFT: 
-        horizontalServo.write(0);
-        verticalServo.write(0);
-        break;
-     
-      case UP: 
-        horizontalServo.write(90);
-        verticalServo.write(90);
-        break;
-  }
-}
-
-//Gets the measured distance from the ultrasonic sensor.
-int getDistance() {
-  delay(50);
-  
-  int distance = sonar.ping_cm();
-  // Prints the distance on the Serial Monitor
-  Serial.println(distance);
-  return distance;
 }
