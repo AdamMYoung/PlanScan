@@ -1,5 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { PaperScope, Project, Path, Point } from 'paper';
+import { PaperScope, Project, Path, Point, view } from 'paper';
+import { Coordinate } from 'src/app/classes/coordinate';
+import { Wall } from 'src/app/classes/wall';
 
 @Component({
   selector: 'app-paper-canvas',
@@ -17,17 +19,20 @@ export class PaperCanvasComponent implements OnInit {
     this.scope = new PaperScope();
     this.project = new Project(this.canvasElement.nativeElement);
 
-    // Create a Paper.js Path to draw a line into it:
-    const path = new Path();
-    path.strokeColor = 'black';
+    // Mark center
+    const centerCross1 = new Path();
+    centerCross1.strokeColor = 'black';
+    centerCross1.moveTo(new Point(this.scope.view.center.x - 1, this.scope.view.center.y + 1));
+    centerCross1.lineTo(new Point(this.scope.view.center.x + 1, this.scope.view.center.y - 1));
 
-    // Coords
-    const start = new Point(100, 100);
-    const end = new Point(100, -50);
+    const centerCross2 = new Path();
+    centerCross2.strokeColor = 'black';
+    centerCross2.moveTo(new Point(this.scope.view.center.x + 1, this.scope.view.center.y + 1));
+    centerCross2.lineTo(new Point(this.scope.view.center.x - 1, this.scope.view.center.y - 1));
 
-    // Draw line
-    path.moveTo(start);
-    path.lineTo(end);
+
+    const origin = new Coordinate(this.scope.view.center.x, this.scope.view.center.y);
+    const wall = new Wall(origin, 90, [20, 20]);
+    wall.draw();
   }
-
 }
