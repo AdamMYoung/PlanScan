@@ -1,5 +1,6 @@
+import { Direction } from './../../classes/wall';
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { PaperScope, Project, Path, Point, view } from 'paper';
+import { PaperScope, Project, Path, Point, view, Matrix, Rectangle, Size } from 'paper';
 import { Coordinate } from 'src/app/classes/coordinate';
 import { Wall } from 'src/app/classes/wall';
 
@@ -20,19 +21,14 @@ export class PaperCanvasComponent implements OnInit {
     this.project = new Project(this.canvasElement.nativeElement);
 
     // Mark center
-    const centerCross1 = new Path();
-    centerCross1.strokeColor = 'black';
-    centerCross1.moveTo(new Point(this.scope.view.center.x - 1, this.scope.view.center.y + 1));
-    centerCross1.lineTo(new Point(this.scope.view.center.x + 1, this.scope.view.center.y - 1));
+    const centerMarker = new Path.Rectangle(
+      new Rectangle(new Point(this.scope.view.center.x - 1, this.scope.view.center.x - 1), new Size(2, 2))
+    );
+    centerMarker.fillColor = 'red';
 
-    const centerCross2 = new Path();
-    centerCross2.strokeColor = 'black';
-    centerCross2.moveTo(new Point(this.scope.view.center.x + 1, this.scope.view.center.y + 1));
-    centerCross2.lineTo(new Point(this.scope.view.center.x - 1, this.scope.view.center.y - 1));
-
-
+    // Draw wall
     const origin = new Coordinate(this.scope.view.center.x, this.scope.view.center.y);
-    const wall = new Wall(origin, 90, [20, 20]);
+    const wall = new Wall(origin, Direction.Forward, [20, 20]);
     wall.draw();
   }
 }

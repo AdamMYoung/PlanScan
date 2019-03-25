@@ -5,12 +5,45 @@ export class Wall {
     path: Path;
     coordinates: Array<Coordinate> = [];
 
-    constructor(origin: Coordinate, angle: number, distances: number[]) {
-        const leftSensorDisplacementX = -5;
-        const rightSensorDisplacementX = 5;
+    constructor(origin: Coordinate, direction: Direction, distances: number[]) {
 
-        const leftSensorOrigin = new Coordinate(origin.x + leftSensorDisplacementX, origin.y);
-        const rightSensorOrigin = new Coordinate(origin.x + rightSensorDisplacementX, origin.y);
+        // Displacement values are added to measure the distance of the sensor to the origin
+        // The vertical displacements are flipped to represent the grid starting at (0, 0) in the top left corner
+        const displacementMeasurement = 5;
+
+        let angle = 0;
+        let leftSensorDisplacementX = 0;
+        let leftSensorDisplacementY = 0;
+        let rightSensorDisplacementX = 0;
+        let rightSensorDisplacementY = 0;
+
+        switch (direction) {
+            case Direction.Forward:
+                leftSensorDisplacementX = -displacementMeasurement;
+                rightSensorDisplacementX = displacementMeasurement;
+                break;
+            case Direction.Right:
+                angle = 90;
+                leftSensorDisplacementY = -displacementMeasurement;
+                rightSensorDisplacementY = displacementMeasurement;
+                break;
+            case Direction.Backward:
+                angle = 180;
+                leftSensorDisplacementX = displacementMeasurement;
+                rightSensorDisplacementX = -displacementMeasurement;
+                break;
+            case Direction.Left:
+                angle = 270;
+                leftSensorDisplacementY = displacementMeasurement;
+                rightSensorDisplacementY = -displacementMeasurement;
+                break;
+        }
+
+        const leftSensorOrigin = new Coordinate(origin.x + leftSensorDisplacementX, origin.y + leftSensorDisplacementY);
+        const rightSensorOrigin = new Coordinate(origin.x + rightSensorDisplacementX, origin.y + rightSensorDisplacementY);
+
+        console.log(leftSensorOrigin);
+        console.log(rightSensorOrigin);
 
         this.coordinates.push(this.calculateCoordinate(leftSensorOrigin, angle, distances[0]));
         this.coordinates.push(this.calculateCoordinate(rightSensorOrigin, angle, distances[1]));
@@ -22,7 +55,7 @@ export class Wall {
 
         return new Coordinate(
             (origin.x + distance * Math.sin(radians)),
-            (origin.y + distance * Math.cos(radians))
+            (origin.y - distance * Math.cos(radians))
         );
     }
 
@@ -39,4 +72,11 @@ export class Wall {
         this.path.moveTo(start);
         this.path.lineTo(end);
     }
+}
+
+export enum Direction {
+    Forward,
+    Right,
+    Backward,
+    Left
 }
