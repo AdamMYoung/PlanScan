@@ -64,11 +64,23 @@ class Display {
       lcd = new LiquidCrystal(2,3,4,5,6,7);
       lcd->begin(16,2);
     }
-
+    
+    /*
+    * Writes the two lines specified to the LCD
+    */
+    void write(String line1, String line2)
+    {
+      lcd->clear();
+      lcd->setCursor(0, 0);
+      lcd->print(line1);
+      lcd->setCursor(0, 1);
+      lcd->print(line2);
+    }
+    
     /*
     * Writes the specified distance to the LCD at the start of the 2nd line.
     */
-    void write(int distance, String pos) {
+    void writeDistance(int distance, String pos) {
       lcd->setCursor(0, 1);
       lcd->print(pos);
       lcd->print(":");
@@ -182,6 +194,33 @@ class SensorController {
       return isReading;
     }  
 };
+
+//__________________________________________________
+// Menu
+
+class MenuNode
+{
+  public:
+    String line1;
+    String line2;
+    MenuNode(String l1, String l2)
+    {
+      line1 = l1;
+      line2 = l2;
+    }
+}
+
+MenuNode menuList[3] =
+{
+  MenuNode("PlanScan (1/3)", "Start Scan"),
+  MenuNode("PlanScan (2/3)", "Measurements"),
+  MenuNode("PlanScan (3/3)", "Calibration")
+};
+int menuLast = sizeof(menuList) - 1;
+int selectedMenuNode = 1;
+
+
+
 
 const int buttonPin = 8;
 SensorController controller;
