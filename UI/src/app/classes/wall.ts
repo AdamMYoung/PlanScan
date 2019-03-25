@@ -1,11 +1,14 @@
 import { Coordinate } from './coordinate';
-import { Path, Point } from 'paper';
+import { Path, Point, PointText } from 'paper';
 
 export class Wall {
     path: Path;
     coordinates: Array<Coordinate> = [];
+    direction: Direction;
 
     constructor(origin: Coordinate, direction: Direction, distances: number[]) {
+
+        this.direction = direction;
 
         // Displacement values are added to measure the distance of the sensor to the origin
         // The vertical displacements are flipped to represent the grid starting at (0, 0) in the top left corner
@@ -71,6 +74,31 @@ export class Wall {
         // Draw line
         this.path.moveTo(start);
         this.path.lineTo(end);
+
+        // Line description
+        this.placeText("Testing Testing!", this.path);
+    }
+
+    placeText(str, path) {
+        var text = new PointText(path.getPointAt(this.path.length / 2));
+        text.fillColor = 'black';
+        text.content = str;
+
+        switch (this.direction) {
+            case Direction.Forward:
+                text.justification = 'center';
+                break;
+            case Direction.Right:
+                text.justification = 'left';
+                break;
+            case Direction.Backward:
+                text.justification = 'center';
+                text.position.y += 10;
+                break;
+            case Direction.Left:
+                text.justification = 'right';
+                break;
+        }
     }
 }
 

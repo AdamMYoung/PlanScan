@@ -28,7 +28,9 @@ export class PaperCanvasComponent implements OnInit {
 
     // Draw wall
     const origin = new Coordinate(this.scope.view.center.x, this.scope.view.center.y);
-    const wall = new Wall(origin, Direction.Forward, [20, 20]);
+    const wall = new Wall(origin, Direction.Backward, [20, 20]);
     wall.draw();
   }
+
 }
+
