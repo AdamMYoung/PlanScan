@@ -3,64 +3,23 @@
 #include <NewPing.h>
 #include <Encoder.h>
 
+//________________________________________________________________________________
+// Display
+
 /**
- * Class to manage an ultrasonic sensor data.
+ * Class for controlling the LCD
  */
-class Ultrasonic {
-   private:
-      NewPing* _sonar;
-      const int maxDistance = 500;
-      
-   public:
-    /**
-     * Instantiates a new Ultrasonic object, using the trigger and echo pins to instantiate
-     * a NewPing object.
-     */
-     
-    Ultrasonic(int trigger, int echo) {  
-       pinMode(trigger, OUTPUT); // Sets the trigPin as an Output
-       pinMode(echo, INPUT); // Sets the echoPin as an Input 
-       _sonar = new NewPing(trigger, echo, maxDistance);
-    }
-
-    /**
-     * Returns the current distance from the ultrasonic sensor in centimeters.
-     */
-    int takeReading() {
-      int distance = _sonar->ping_cm();
-      // Prints the distance on the Serial Monitor
-      Serial.println(distance);
-      return distance;
-    }
-};
-
-class RotaryEncoder {
-  private:
-    long encoderVal = -999;
-    Encoder* encoder;
-
-  public:
-    RotaryEncoder(int pinA, int pinB) {
-      encoder = new Encoder(pinA, pinB);
-    }
-
-    int readEncoder() {
-      long newVal = encoder->read() / 4;
-      if(encoderVal != newVal){
-        Serial.print("Encoder Val = ");
-        Serial.print(newVal);
-        Serial.println();
-        encoderVal = newVal;
-      }
-    }
-};
-
-class Display {
+class Display
+{
   private:
     LiquidCrystal* lcd;
 
   public:
-    Display() {
+  /**
+   * Instantiates the display with the default pins
+   */
+    Display()
+    {
       lcd = new LiquidCrystal(2,3,4,5,6,7);
       lcd->begin(16,2);
     }
@@ -76,25 +35,64 @@ class Display {
       lcd->setCursor(0, 1);
       lcd->print(line2);
     }
-    
-    /*
-    * Writes the specified distance to the LCD at the start of the 2nd line.
-    */
-    void writeDistance(int distance, String pos) {
-      lcd->setCursor(0, 1);
-      lcd->print(pos);
-      lcd->print(":");
-      lcd->print(distance);
-      lcd->print(" cm ");
+};
+
+//________________________________________________________________________________
+// Sensors
+
+/**
+ * Class to manage an ultrasonic sensor data.
+ */
+class Ultrasonic
+{
+   private:
+      NewPing* _sonar;
+      const int maxDistance = 500;
+      
+   public:
+    /**
+     * Instantiates a new Ultrasonic object, using the trigger and echo pins to instantiate
+     * a NewPing object.
+     */ 
+    Ultrasonic(int trigger, int echo)
+    {  
+       pinMode(trigger, OUTPUT); // Sets the trigPin as an Output
+       pinMode(echo, INPUT); // Sets the echoPin as an Input 
+       _sonar = new NewPing(trigger, echo, maxDistance);
     }
 
     /**
-     * Resets the LCD display, then writes the "Distance" value to the first line.
+     * Returns the current distance from the ultrasonic sensor in centimeters.
      */
-    void clear() {
-      lcd->clear();
-      lcd->setCursor(0, 0);
-      lcd->print("Distance:");
+    int takeReading()
+    {
+      int distance = _sonar->ping_cm();
+      // Prints the distance on the Serial Monitor
+      Serial.println(distance);
+      return distance;
+    }
+};
+
+class RotaryEncoder {
+  private:
+    long encoderVal = -999;
+    Encoder* encoder;
+
+  public:
+    RotaryEncoder(int pinA, int pinB)
+    {
+      encoder = new Encoder(pinA, pinB);
+    }
+
+    int readEncoder()
+    {
+      long newVal = encoder->read() / 4;
+      if(encoderVal != newVal){
+        Serial.print("Encoder Val = ");
+        Serial.print(newVal);
+        Serial.println();
+        encoderVal = newVal;
+      }
     }
 };
 
@@ -116,8 +114,10 @@ class SensorController {
      * Sets the direction of the ultrasonic sensor based on the position
      * enumerated type passed.
      */
-    void setServoPosition(ServoPosition position) {
-      switch(position) {
+    void setServoPosition(ServoPosition position)
+    {
+      switch(position)
+      {
          case FORWARD: 
             horizontalServo->write(90);
             verticalServo->write(0);
@@ -146,7 +146,8 @@ class SensorController {
     }
 
   public:
-    SensorController() {
+    SensorController()
+    {
         ultrasonicA = new Ultrasonic(9, 10);
         displayA = new Display();
 
@@ -161,28 +162,28 @@ class SensorController {
      * Starts the data collection, iterating through each possible direction and
      * outputting the results to the display.
      */
-    void startDataCollection() {
+    void startDataCollection()
+    {
       isReading = true;
-      displayA->clear();
       
       setServoPosition(FORWARD);
-      displayA->write(ultrasonicA->takeReading(), "F");
+      displayA->write("Distance:", "F: " + ultrasonicA->takeReading());
       delay(2000);
       
       setServoPosition(RIGHT);
-      displayA->write(ultrasonicA->takeReading(), "R");
+      displayA->write("Distance:", "R: " + ultrasonicA->takeReading());
       delay(2000);
     
       setServoPosition(BACK);
-      displayA->write(ultrasonicA->takeReading(), "B");
+      displayA->write("Distance:", "B: " + ultrasonicA->takeReading());
       delay(2000);
       
       setServoPosition(LEFT);
-      displayA->write(ultrasonicA->takeReading(), "L");
+      displayA->write("Distance:", "L: " + ultrasonicA->takeReading());
       delay(2000);
     
       setServoPosition(UP);
-      displayA->write(ultrasonicA->takeReading(), "U");
+      displayA->write("Distance:", "U: " + ultrasonicA->takeReading());
       delay(2000);
       isReading = false;
     }
@@ -190,12 +191,16 @@ class SensorController {
     /**
      * Returns true if the controller is currently taking readings.
      */
-    bool isTakingReading() {
+    bool isTakingReading()
+    {
       return isReading;
     }  
 };
 
-//__________________________________________________
+const int buttonPin = 8;
+SensorController controller;
+
+//________________________________________________________________________________
 // Menu
 
 class MenuNode
@@ -208,7 +213,7 @@ class MenuNode
       line1 = l1;
       line2 = l2;
     }
-}
+};
 
 MenuNode menuList[3] =
 {
@@ -217,21 +222,68 @@ MenuNode menuList[3] =
   MenuNode("PlanScan (3/3)", "Calibration")
 };
 int menuLast = sizeof(menuList) - 1;
-int selectedMenuNode = 1;
+int selectedMenuNode = 0;
 
+Display menuDisplay;
 
+void showNodeOnDisplay()
+{
+  menuDisplay.write(menuList[selectedMenuNode].line1, menuList[selectedMenuNode].line2);
+}
 
+void selectLeft()
+{
+  if (selectedMenuNode != 0)
+  {
+    selectedMenuNode = selectedMenuNode - 1;
+    showNodeOnDisplay();
+  }
+}
+void selectRight()
+{
+  if (selectedMenuNode != menuLast)
+  {
+    selectedMenuNode = selectedMenuNode + 1;
+    showNodeOnDisplay();
+  }
+}
 
-const int buttonPin = 8;
-SensorController controller;
+const int leftButtonPin = A3;
+const int rightButtonPin = A4;
+const int selectButtonPin = A5;
+
+void checkMenuButtons()
+{
+  if (digitalRead(leftButtonPin) == HIGH)
+  {
+    selectLeft();
+    delay(1000);
+  }
+  else if (digitalRead(rightButtonPin) == HIGH)
+  {
+    selectRight();
+    delay(1000);
+  }
+  else if (digitalRead(selectButtonPin) == HIGH)
+  {
+    // do something
+  }
+}
 
 void setup() {
   pinMode(buttonPin, INPUT); // Sets the buttonPin as an Input.
+  pinMode(leftButtonPin, INPUT);
+  pinMode(rightButtonPin, INPUT);
+  pinMode(selectButtonPin, INPUT);
+  showNodeOnDisplay();
   Serial.begin(9600); // Starts the serial communication
 }
 
 void loop() {
+  checkMenuButtons();
+
+  // to be removed when been able to take measurements through the menu has been tested
   if((digitalRead(buttonPin) == HIGH) && !controller.isTakingReading()) {
      controller.startDataCollection();
-  }
+  }  
 }
