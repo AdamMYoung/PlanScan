@@ -103,8 +103,8 @@ class RotaryEncoder {
  */
 class SensorController {
   private:
-    const Servo* horizontalServo;
-    const Servo* verticalServo;
+    Servo* horizontalServo;
+    Servo* verticalServo;
     Ultrasonic* ultrasonicA;
     Display* displayA;
     bool isReading = false;
