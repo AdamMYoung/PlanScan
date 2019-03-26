@@ -208,18 +208,30 @@ class MenuNode
   public:
     String line1;
     String line2;
-    MenuNode(String l1, String l2)
+    void (* action)();
+    MenuNode(String l1, String l2, void(* a)())
     {
       line1 = l1;
       line2 = l2;
+      action = a;
     }
 };
 
+void startScan(){
+  controller.startDataCollection();
+}
+void func2(){
+  
+}
+void func3(){
+  
+}
+
 MenuNode menuList[3] =
 {
-  MenuNode("PlanScan (1/3)", "Start Scan"),
-  MenuNode("PlanScan (2/3)", "Measurements"),
-  MenuNode("PlanScan (3/3)", "Calibration")
+  MenuNode("PlanScan (1/3)", "Start Scan", startScan),
+  MenuNode("PlanScan (2/3)", "Measurements", func2),
+  MenuNode("PlanScan (3/3)", "Calibration", func3)
 };
 int menuLast = sizeof(menuList) - 1;
 int selectedMenuNode = 0;
@@ -246,6 +258,10 @@ void selectRight()
     selectedMenuNode = selectedMenuNode + 1;
     showNodeOnDisplay();
   }
+}
+void selectAction()
+{
+  menuList[selectedMenuNode].action();
 }
 
 const int leftButtonPin = A3;
