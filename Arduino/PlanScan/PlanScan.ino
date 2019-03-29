@@ -74,6 +74,9 @@ void setup() {
 
   horizontalServo.attach(horizontalServoPin);
   verticalServo.attach(verticalServoPin);
+  horizontalServo.write(0);
+  verticalServo.write(0);
+  delay(200);
   
   lcd.begin(16, 2);
 
@@ -133,24 +136,29 @@ void setDistance(int distance, String pos) {
  */
 void takeReading() {
   triggerServo(FORWARD);
-  setDistance(getDistance(), "F");
-  delay(2000);
+  delay(1000);
+  setDistance(getDistance(), "F");  
+  delay(500);
   
   triggerServo(RIGHT);
+  delay(1000);
   setDistance(getDistance(), "R");
-  delay(2000);
+  delay(500);
 
   triggerServo(BACK);
+  delay(1000);
   setDistance(getDistance(), "B");
-  delay(2000);
+  delay(500);
   
   triggerServo(LEFT);
+  delay(1000);
   setDistance(getDistance(), "L");
-  delay(2000);
-
+  delay(500);
+ 
   triggerServo(UP);
+  delay(1000);
   setDistance(getDistance(), "U");
-  delay(2000);
+  delay(500);
 }
 
 /*
@@ -165,7 +173,7 @@ void triggerServo(servoPosition position) {
 
       case RIGHT: 
         horizontalServo.write(180);
-        verticalServo.write(0);
+        //verticalServo.write(0);
         break;
 
       case BACK: 
@@ -214,6 +222,7 @@ MenuNode menuList[3] =
  */
 void startScan(){
   takeReading();
+  delay(200);
   showNodeOnDisplay();
 }
 
