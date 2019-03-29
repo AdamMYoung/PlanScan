@@ -3,6 +3,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { PaperScope, Project, Path, Point, view, Matrix, Rectangle, Size } from 'paper';
 import { Coordinate } from 'src/app/classes/coordinate';
 import { Wall } from 'src/app/classes/wall';
+import { Room } from '../../classes/room';
 
 @Component({
   selector: 'app-paper-canvas',
@@ -26,10 +27,17 @@ export class PaperCanvasComponent implements OnInit {
     );
     centerMarker.fillColor = 'red';
 
-    // Draw wall
+    // Draw walls
     const origin = new Coordinate(this.scope.view.center.x, this.scope.view.center.y);
-    const wall = new Wall(origin, Direction.Backward, [20, 20]);
-    wall.draw();
+    const walls = [
+      new Wall(origin, Direction.Forward, [20, 20]),
+      new Wall(origin, Direction.Backward, [20, 20]),
+      new Wall(origin, Direction.Right, [20, 20]),
+      new Wall(origin, Direction.Left, [20, 20]),
+    ];
+
+    const room = new Room(walls);
+    room.draw();
   }
 
 }

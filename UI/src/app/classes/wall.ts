@@ -76,7 +76,7 @@ export class Wall {
         this.path.lineTo(end);
 
         // Line description
-        this.placeText("Testing Testing!", this.path);
+        this.placeText("1m", this.path);
     }
 
     placeText(str, path) {
