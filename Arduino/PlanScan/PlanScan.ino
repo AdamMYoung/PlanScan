@@ -6,12 +6,9 @@
 //________________________________________________________________________________
 // Menu
 
-
-const int leftButtonPin = A3;
-const int rightButtonPin = A4;
-const int selectButtonPin = A5;
-int selectedMenuNode = 0;
-
+/*
+ * MenuNode class representing an entry of the LCD menu.
+ */
 class MenuNode
 {
   public:
@@ -25,6 +22,12 @@ class MenuNode
       action = a;
     }
 };
+
+//Menu
+const int leftButtonPin = A3;
+const int rightButtonPin = A4;
+const int selectButtonPin = A5;
+int selectedMenuNode = 0;
 
 // Ultrasonic
 const int triggerPin = 9;
@@ -60,6 +63,9 @@ LiquidCrystal lcd(rsPin, enablePin, d4, d5, d6, d7);
 bool triggered = false;
 long encoderVal = -999;
 
+/*
+ * Initializes pin I/O and libraries.
+ */
 void setup() {
   pinMode(buttonPin, INPUT); // Sets the buttonPin as an Input.
   pinMode(leftButtonPin, INPUT);
@@ -77,10 +83,16 @@ void setup() {
   Serial.begin(9600); // Starts the serial communication
 }
 
+/*
+ * Checks the menu buttons for input.
+ */
 void loop() {
   checkMenuButtons();
 }
 
+/*
+ * Reads the encoder value, and updates the stored information if different.
+ */
 void readEncoder(){
   long newVal = encoder.read() / 4;
   if(encoderVal != newVal){
@@ -91,6 +103,9 @@ void readEncoder(){
   }
 }
 
+/*
+ * Sets the menu text. 
+ */
 void setMenu(String line1, String line2) {
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -99,6 +114,9 @@ void setMenu(String line1, String line2) {
   lcd.print(line2);
 }
 
+/*
+ * Set the distance text on the LCD.
+ */
 void setDistance(int distance, String pos) {
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -110,6 +128,9 @@ void setDistance(int distance, String pos) {
   lcd.print(" cm ");
 }
 
+/*
+ * Iterates through each position, outputting the distance to the LCD.
+ */
 void takeReading() {
   triggerServo(FORWARD);
   setDistance(getDistance(), "F");
@@ -132,6 +153,9 @@ void takeReading() {
   delay(2000);
 }
 
+/*
+ * Moves the servos to the specified position.
+ */
 void triggerServo(servoPosition position) {
   switch(position) {
      case FORWARD: 
@@ -161,7 +185,9 @@ void triggerServo(servoPosition position) {
   }
 }
 
-//Gets the measured distance from the ultrasonic sensor.
+/*
+ * Gets the current distance from the ultrasonic sensor.
+ */
 int getDistance() {
   delay(50);
   
@@ -171,6 +197,11 @@ int getDistance() {
   return distance;
 }
 
+//-------- Menu ---------
+
+/*
+ * Menu items for selection.
+ */
 MenuNode menuList[3] =
 {
   MenuNode("PlanScan (1/3)", "Start Scan", startScan),
@@ -178,7 +209,9 @@ MenuNode menuList[3] =
   MenuNode("PlanScan (3/3)", "Calibration", func3)
 };
 
-//Menu Functions
+/*
+ * Starts reading distance measurements.
+ */
 void startScan(){
   takeReading();
   showNodeOnDisplay();
@@ -191,13 +224,17 @@ void func3(){
   
 }
 
-//Menu Controls
-
+/*
+ * Displays the currently selected node onto the LCD.
+ */
 void showNodeOnDisplay()
 {
   setMenu(menuList[selectedMenuNode].line1, menuList[selectedMenuNode].line2);
 }
 
+/*
+ * Called when the left button is selected.
+ */
 void selectLeft()
 {
   if (selectedMenuNode != 0)
@@ -206,6 +243,10 @@ void selectLeft()
     showNodeOnDisplay();
   }
 }
+
+/*
+ * Called when the right button is selected.
+ */
 void selectRight()
 {
   if (selectedMenuNode != 2)
@@ -214,12 +255,19 @@ void selectRight()
     showNodeOnDisplay();
   }
 }
+
+/*
+ * Called when the center button is selected.
+ */
 void selectAction()
 {
   menuList[selectedMenuNode].action();
   showNodeOnDisplay();
 }
 
+/*
+ * Checks each menu button for interaction, and calls associated methods if selected.
+ */
 void checkMenuButtons()
 {
   if (digitalRead(leftButtonPin) == HIGH)
