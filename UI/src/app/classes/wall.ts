@@ -5,6 +5,7 @@ export class Wall {
     path: Path;
     coordinates: Array<Coordinate> = [];
     direction: Direction;
+    center: Coordinate;
 
     constructor(origin: Coordinate, direction: Direction, distances: number[]) {
 
@@ -45,11 +46,12 @@ export class Wall {
         const leftSensorOrigin = new Coordinate(origin.x + leftSensorDisplacementX, origin.y + leftSensorDisplacementY);
         const rightSensorOrigin = new Coordinate(origin.x + rightSensorDisplacementX, origin.y + rightSensorDisplacementY);
 
-        console.log(leftSensorOrigin);
-        console.log(rightSensorOrigin);
-
         this.coordinates.push(this.calculateCoordinate(leftSensorOrigin, angle, distances[0]));
         this.coordinates.push(this.calculateCoordinate(rightSensorOrigin, angle, distances[1]));
+        this.center = new Coordinate(
+            Math.round((this.coordinates[0].x + this.coordinates[1].x) / 2),
+            Math.round((this.coordinates[0].y + this.coordinates[1].y) / 2)
+        );
     }
 
     calculateCoordinate(origin: Coordinate, angle: number, distance: number): Coordinate {
@@ -63,6 +65,10 @@ export class Wall {
     }
 
     draw() {
+        if (this.path != null) {
+            this.path.remove();
+        }
+
         // Path setup
         this.path = new Path();
         this.path.strokeColor = 'black';
@@ -76,7 +82,32 @@ export class Wall {
         this.path.lineTo(end);
 
         // Line description
-        this.placeText("1m", this.path);
+        //this.placeText("1m", this.path);
+    }
+
+    extend(extension: number) {
+
+        if (this.direction == Direction.Forward || this.direction == Direction.Backward) {
+            // +-1 x to both points
+            if (this.coordinates[0].x > this.coordinates[1].x) {
+                this.coordinates[0].x += extension;
+                this.coordinates[1].x -= extension;
+            } else {
+                this.coordinates[0].x -= extension;
+                this.coordinates[1].x += extension;
+            }
+        } else {
+            // +-1 y to both points
+            if (this.coordinates[0].y > this.coordinates[1].y) {
+                this.coordinates[0].y += extension;
+                this.coordinates[1].y -= extension;
+            } else {
+                this.coordinates[0].y -= extension;
+                this.coordinates[1].y += extension;
+            }
+        }
+
+        this.draw();
     }
 
     placeText(str, path) {
@@ -99,6 +130,24 @@ export class Wall {
                 text.justification = 'right';
                 break;
         }
+    }
+
+    findClosestWall(walls: Wall[]) {
+        var closestDistance = Number.MAX_SAFE_INTEGER;
+        var closestWall = null;
+
+        walls.forEach(wall => {
+            var xDistance = this.center.x + wall.center.x;
+            var yDistance = this.center.y + wall.center.y;
+            var distance = Math.sqrt((xDistance * xDistance) + (yDistance * yDistance));
+
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestWall = wall;
+            }
+        });
+
+        return closestWall;
     }
 }
 

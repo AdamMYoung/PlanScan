@@ -36,9 +36,25 @@ export class PaperCanvasComponent implements OnInit {
       new Wall(origin, Direction.Left, [20, 20]),
     ];
 
+    /*
+    // Path setup
+    const path = new Path();
+    path.strokeColor = 'black';
+
+    // Create Points from Coordinates
+    const start = new Point(240,240);
+    const end = new Point(260, 260);
+
+    // Draw line
+    path.moveTo(start);
+    path.lineTo(end);
+    */
+
     const room = new Room(walls);
     room.draw();
+    
+    console.log(room.walls[0].path.intersects(room.walls[3].path));
+    
   }
 
 }
-
