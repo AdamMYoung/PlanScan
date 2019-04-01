@@ -23,21 +23,52 @@ class MenuNode
     }
 };
 
+/*
+ * A single reading of a direction.
+ */
+class DirectionalMeasurements 
+{
+  int leftReading;
+  int rightReading;
+  int angleHorizontal;
+  int angleVertical;
+
+  DirectionalMovements(int left, int right, int angleH, int angleV)
+  { 
+    leftReading = left;
+    rightReading = right;
+    angleHorizontal = angleH;
+    angleVertical = angleV;
+  }
+};
+
+class PozitionalEntry
+{
+  int encoderX;
+  int encoderY;
+
+  
+};
+
 //Menu
-const int leftButtonPin = A3;
-const int rightButtonPin = A4;
+const int directionalButtonPin = A4;
 const int selectButtonPin = A5;
 int selectedMenuNode = 0;
 
 // Ultrasonic
-const int triggerPin = 9;
-const int echoPin = 10;
-const int buttonPin = 8;
 const int maxDistance = 500;
 
+// A
+const int triggerPinA = 8;
+const int echoPinA = 9;
+
+// B
+const int triggerPinB = 10;
+const int echoPinB = 11;
+
 //Servo
-const int horizontalServoPin = 12;
-const int verticalServoPin = 11;
+const int horizontalServoPin = 13;
+const int verticalServoPin = 12;
 
 //LCD Display
 const int rsPin = 2;
@@ -47,29 +78,34 @@ const int d5 = 5;
 const int d6 = 6;
 const int d7 = 7;
 
-//Encoder
+//Encoders
+//A
 const int encoderPinA = A0;
 const int encoderPinB = A1;
+
+//B
+const int encoderPinC = A2;
+const int encoderPinD = A3;
 
 enum servoPosition {FORWARD, BACK, LEFT, RIGHT, UP};
 
 Servo horizontalServo;
 Servo verticalServo;
-NewPing sonar(triggerPin, echoPin, maxDistance);
-Encoder encoder(encoderPinA, encoderPinB);
+NewPing sonarA(triggerPinA, echoPinA, maxDistance);
+NewPing sonarB(triggerPinB, echoPinB, maxDistance);
+Encoder encoderA(encoderPinA, encoderPinB);
+Encoder encoderB(encoderPinC, encoderPinD);
 LiquidCrystal lcd(rsPin, enablePin, d4, d5, d6, d7);
 
 // defines variables
-bool triggered = false;
-long encoderVal = -999;
+long encoderValA = -999;
+long encoderValB = -999;
 
 /*
  * Initializes pin I/O and libraries.
  */
 void setup() {
-  pinMode(buttonPin, INPUT); // Sets the buttonPin as an Input.
-  pinMode(leftButtonPin, INPUT);
-  pinMode(rightButtonPin, INPUT);
+  pinMode(directionalButtonPin, INPUT);
   pinMode(selectButtonPin, INPUT);
 
   horizontalServo.attach(horizontalServoPin);
@@ -80,7 +116,8 @@ void setup() {
   
   lcd.begin(16, 2);
 
-  encoder.write(0);
+  encoderA.write(0);
+  encoderB.write(0);
 
   showNodeOnDisplay();
   Serial.begin(9600); // Starts the serial communication
@@ -90,19 +127,32 @@ void setup() {
  * Checks the menu buttons for input.
  */
 void loop() {
+  readEncoderA();
+  readEncoderB();
   checkMenuButtons();
 }
 
 /*
  * Reads the encoder value, and updates the stored information if different.
  */
-void readEncoder(){
-  long newVal = encoder.read() / 4;
-  if(encoderVal != newVal){
-    Serial.print("Encoder Val = ");
-    Serial.print(newVal);
-    Serial.println();
-    encoderVal = newVal;
+void readEncoderA(){
+  long newVal = encoderA.read() / 4;
+  if(encoderValA != newVal){
+    Serial.println("Encoder Val A = ");
+    Serial.println(newVal);
+    encoderValA = newVal;
+  }
+}
+
+/*
+ * Reads the encoder value, and updates the stored information if different.
+ */
+void readEncoderB(){
+  long newVal = encoderB.read() / 4;
+  if(encoderValB != newVal){
+    Serial.println("Encoder Val B = ");
+    Serial.println(newVal);
+    encoderValB = newVal;
   }
 }
 
@@ -120,15 +170,17 @@ void setMenu(String line1, String line2) {
 /*
  * Set the distance text on the LCD.
  */
-void setDistance(int distance, String pos) {
+void setDistance(int distanceA, int distanceB, String pos) {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Distance:");
   lcd.setCursor(0, 1);
   lcd.print(pos);
   lcd.print(":");
-  lcd.print(distance);
-  lcd.print(" cm ");
+  lcd.print(distanceA);
+  lcd.print(",");
+  lcd.print(distanceB);
+  lcd.print(" cm");
 }
 
 /*
@@ -137,27 +189,27 @@ void setDistance(int distance, String pos) {
 void takeReading() {
   triggerServo(FORWARD);
   delay(1000);
-  setDistance(getDistance(), "F");  
+  setDistance(getDistance(sonarA), getDistance(sonarB), "F");  
   delay(500);
   
   triggerServo(RIGHT);
   delay(1000);
-  setDistance(getDistance(), "R");
+  setDistance(getDistance(sonarA), getDistance(sonarB), "R");
   delay(500);
 
   triggerServo(BACK);
   delay(1000);
-  setDistance(getDistance(), "B");
+  setDistance(getDistance(sonarA), getDistance(sonarB), "B");
   delay(500);
   
   triggerServo(LEFT);
   delay(1000);
-  setDistance(getDistance(), "L");
+  setDistance(getDistance(sonarA), getDistance(sonarB), "L");
   delay(500);
  
   triggerServo(UP);
   delay(1000);
-  setDistance(getDistance(), "U");
+  setDistance(getDistance(sonarA), getDistance(sonarB), "U");
   delay(500);
 }
 
@@ -196,11 +248,10 @@ void triggerServo(servoPosition position) {
 /*
  * Gets the current distance from the ultrasonic sensor.
  */
-int getDistance() {
+int getDistance(NewPing sonar) {
   delay(50);
-  
+
   int distance = sonar.ping_cm();
-  // Prints the distance on the Serial Monitor
   Serial.println(distance);
   return distance;
 }
@@ -221,6 +272,8 @@ MenuNode menuList[3] =
  * Starts reading distance measurements.
  */
 void startScan(){
+  Serial.print("Starting scan");
+  Serial.println();
   takeReading();
   delay(200);
   showNodeOnDisplay();
@@ -266,25 +319,17 @@ void selectRight()
 }
 
 /*
- * Called when the center button is selected.
- */
-void selectAction()
-{
-  menuList[selectedMenuNode].action();
-  showNodeOnDisplay();
-}
-
-/*
  * Checks each menu button for interaction, and calls associated methods if selected.
  */
 void checkMenuButtons()
 {
-  if (digitalRead(leftButtonPin) == HIGH)
+  int directionalInput = analogRead(directionalButtonPin);
+  if (directionalInput > 500 && directionalInput < 600)
   {
     selectLeft();
     delay(300);
   }
-  else if (digitalRead(rightButtonPin) == HIGH)
+  else if (directionalInput > 1000 && directionalInput < 1100)
   {
     selectRight();
     delay(300);
@@ -292,5 +337,7 @@ void checkMenuButtons()
   else if (digitalRead(selectButtonPin) == HIGH)
   {
     menuList[selectedMenuNode].action();
+    Serial.print("Center button selected");
+    Serial.println();
   }
 }
