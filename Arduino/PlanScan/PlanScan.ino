@@ -2,6 +2,7 @@
 #include <LiquidCrystal.h>
 #include <NewPing.h>
 #include <Encoder.h>
+#include <LinkedList.h>
 
 //________________________________________________________________________________
 // Menu
@@ -28,26 +29,35 @@ class MenuNode
  */
 class DirectionalMeasurements 
 {
-  int leftReading;
-  int rightReading;
-  int angleHorizontal;
-  int angleVertical;
-
-  DirectionalMovements(int left, int right, int angleH, int angleV)
-  { 
-    leftReading = left;
-    rightReading = right;
-    angleHorizontal = angleH;
-    angleVertical = angleV;
-  }
+  public:
+    int leftReading;
+    int rightReading;
+    int angleHorizontal;
+    int angleVertical;
+  
+    DirectionalMeasurements(int left, int right, int angleH, int angleV)
+    { 
+      leftReading = left;
+      rightReading = right;
+      angleHorizontal = angleH;
+      angleVertical = angleV;
+    }
+    DirectionalMeasurements(){}
 };
 
-class PozitionalEntry
+class PositionalEntry
 {
-  int encoderX;
-  int encoderY;
-
-  
+  public:
+    int encoderX;
+    int encoderY;
+    DirectionalMeasurements directions[5];
+    
+    PositionalEntry(int encX, int encY){
+      encoderX = encX;
+      encoderY = encY;
+    }
+    //LinkedList library requires an empty constructor.
+    PositionalEntry(){}
 };
 
 //Menu
@@ -57,7 +67,6 @@ int selectedMenuNode = 0;
 
 // Ultrasonic
 const int maxDistance = 500;
-
 // A
 const int triggerPinA = 8;
 const int echoPinA = 9;
@@ -100,6 +109,7 @@ LiquidCrystal lcd(rsPin, enablePin, d4, d5, d6, d7);
 // defines variables
 long encoderValA = -999;
 long encoderValB = -999;
+LinkedList<PositionalEntry> *positions = new LinkedList<PositionalEntry>;
 
 /*
  * Initializes pin I/O and libraries.
@@ -187,30 +197,55 @@ void setDistance(int distanceA, int distanceB, String pos) {
  * Iterates through each position, outputting the distance to the LCD.
  */
 void takeReading() {
+  PositionalEntry entry =  PositionalEntry(encoderValA, encoderValB);
+
+  //Forward
   triggerServo(FORWARD);
   delay(1000);
-  setDistance(getDistance(sonarA), getDistance(sonarB), "F");  
-  delay(500);
-  
-  triggerServo(RIGHT);
-  delay(1000);
-  setDistance(getDistance(sonarA), getDistance(sonarB), "R");
+  DirectionalMeasurements measurementForward =  DirectionalMeasurements(getDistance(sonarA), getDistance(sonarB),
+                                                                  horizontalServo.read(), verticalServo.read()); 
+  setDistance(measurementForward.leftReading, measurementForward.rightReading, "F");  
   delay(500);
 
+  //Right
+  triggerServo(RIGHT);
+  delay(1000);
+  DirectionalMeasurements measurementRight =  DirectionalMeasurements(getDistance(sonarA), getDistance(sonarB),
+                                                                  horizontalServo.read(), verticalServo.read()); 
+  setDistance(measurementRight.leftReading, measurementRight.rightReading, "R");
+  delay(500);
+
+  //Back
   triggerServo(BACK);
   delay(1000);
-  setDistance(getDistance(sonarA), getDistance(sonarB), "B");
+  DirectionalMeasurements measurementBack =  DirectionalMeasurements(getDistance(sonarA), getDistance(sonarB),
+                                                                  horizontalServo.read(), verticalServo.read()); 
+  setDistance(measurementBack.leftReading, measurementBack.rightReading, "B");
   delay(500);
-  
+
+  //Left
   triggerServo(LEFT);
   delay(1000);
-  setDistance(getDistance(sonarA), getDistance(sonarB), "L");
+  DirectionalMeasurements measurementLeft =  DirectionalMeasurements(getDistance(sonarA), getDistance(sonarB),
+                                                                  horizontalServo.read(), verticalServo.read()); 
+  setDistance(measurementLeft.leftReading, measurementLeft.rightReading, "L");
   delay(500);
- 
+
+  //Up
   triggerServo(UP);
   delay(1000);
-  setDistance(getDistance(sonarA), getDistance(sonarB), "U");
+  DirectionalMeasurements measurementUp =  DirectionalMeasurements(getDistance(sonarA), getDistance(sonarB),
+                                                                  horizontalServo.read(), verticalServo.read()); 
+  setDistance(measurementUp.leftReading, measurementUp.rightReading, "U");
   delay(500);
+
+  entry.directions[0] = measurementForward;
+  entry.directions[1] = measurementLeft;
+  entry.directions[2] = measurementBack;
+  entry.directions[3] = measurementRight;
+  entry.directions[4] = measurementUp;
+
+  positions->add(entry);
 }
 
 /*
@@ -265,7 +300,7 @@ MenuNode menuList[3] =
 {
   MenuNode("PlanScan (1/3)", "Start Scan", startScan),
   MenuNode("PlanScan (2/3)", "Measurements", func2),
-  MenuNode("PlanScan (3/3)", "Calibration", func3)
+  MenuNode("PlanScan (3/3)", "Export Data", exportReadings)
 };
 
 /*
@@ -282,7 +317,7 @@ void startScan(){
 void func2(){
   
 }
-void func3(){
+void exportReadings(){
   
 }
 
@@ -340,4 +375,38 @@ void checkMenuButtons()
     Serial.print("Center button selected");
     Serial.println();
   }
+}
+
+//-------- Export --------
+
+/*
+ * Exports the stored data to the serial monitor.
+ */
+void exportData() {
+  Serial.println("TRANSFERSTART");
+
+  for(int i = 0; i < positions->size(); i++){
+    PositionalEntry entry = positions->get(i);
+    Serial.println("POSITION");
+    Serial.print(entry.encoderX); Serial.print("|");
+    Serial.println(entry.encoderY);
+    
+    for(int j = 0; j < 5; j++){
+      Serial.println("READING");
+      exportDirections(entry, j);
+    }   
+  }
+
+  Serial.println("TRANSFEREND");
+}
+
+/*
+ * Gets the required measurement from the entry, and exports it to a single line through the serial port.
+ */
+void exportDirections(PositionalEntry entry, int index){
+    DirectionalMeasurements measurement = entry.directions[index];
+    Serial.print(measurement.leftReading); Serial.print("|"); 
+    Serial.print(measurement.rightReading); Serial.print("|"); 
+    Serial.print(measurement.angleHorizontal); Serial.print("|");
+    Serial.println(measurement.angleVertical);
 }
