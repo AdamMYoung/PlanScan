@@ -299,7 +299,7 @@ int getDistance(NewPing sonar) {
 MenuNode menuList[3] =
 {
   MenuNode("PlanScan (1/3)", "Start Scan", startScan),
-  MenuNode("PlanScan (2/3)", "Measurements", func2),
+  MenuNode("PlanScan (2/3)", "Measurements", listMeasurements),
   MenuNode("PlanScan (3/3)", "Export Data", exportReadings)
 };
 
@@ -314,9 +314,33 @@ void startScan(){
   showNodeOnDisplay();
 }
 
-void func2(){
+// Measurements menu
+void listMeasurements()
+{
+  //need to keep track of current measurements/positions etc.
+  int currentPositionIndex = 0;
+  servoPosition currentDirection = FORWARD;
   
+  setMenu()
+  
+  while (true)
+  {
+    int directionalInput = analogRead(directionalButtonPin);
+    if (directionalInput > 1000)
+    {
+      // go back
+    }
+    else if (directionalInput > 500)
+    {
+      // go forward
+    }
+    else if (digitalRead(selectButtonPin) == HIGH)
+    {
+      break; // exit menu
+    }
+  }
 }
+
 void exportReadings(){
   
 }
