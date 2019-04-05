@@ -30,15 +30,15 @@ class MenuNode
 class DirectionalMeasurements 
 {
   public:
-    String direction;
+    String measurementDirection;
     int leftReading;
     int rightReading;
     int angleHorizontal;
     int angleVertical;
   
-    DirectionalMeasurements(String direction, int left, int right, int angleH, int angleV)
+    DirectionalMeasurements(String direct, int left, int right, int angleH, int angleV)
     { 
-      direction = direction;
+      measurementDirection = direct;
       leftReading = left;
       rightReading = right;
       angleHorizontal = angleH;
@@ -409,7 +409,7 @@ void exportData() {
  */
 void exportDirections(PositionalEntry entry, int index){
     DirectionalMeasurements measurement = entry.directions[index];
-    Serial.print(measurement.direction); Serial.print("|");
+    Serial.print(measurement.measurementDirection); Serial.print("|");
     Serial.print(measurement.leftReading); Serial.print("|"); 
     Serial.print(measurement.rightReading); Serial.print("|"); 
     Serial.print(measurement.angleHorizontal); Serial.print("|");
