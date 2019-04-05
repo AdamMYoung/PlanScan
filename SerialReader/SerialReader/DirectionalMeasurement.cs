@@ -8,6 +8,7 @@ namespace SerialReader
 {
     class DirectionalMeasurement
     {
+        public String Direction { get; set; }
         public int LeftSensor { get; set; }
         public int RightSensor { get; set; }
         public int AngleHorizontal { get; set; }
