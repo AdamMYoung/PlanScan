@@ -45,33 +45,45 @@ namespace SerialReader
         private static void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             var reading = Port.ReadLine();
-
-            switch (reading)
+            Console.WriteLine(reading);
+            if (reading.Length > 2)
             {
-                case "TRANSFERSTART":
-                    FilePath = @".\Readings\" + DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + ".json";
-                    break;
-                case "TRANSFEREND":
-                    ExportToJson();
-                    break;
-                case "POSITION":
-                    StorePosition();
-                    break;
-                case "READING":
-                    StoreReading();
-                    break;
-                default:
-                    Console.WriteLine("Invalid Type");
-                    break;
+                var endChars = reading.Substring(reading.Length - 2, 2);
+                if (endChars.Contains("\r"))
+                    reading = reading.Substring(0, reading.Length - 1);
+
+                switch (reading)
+                {
+                    case "TRANSFERSTART":
+                        FilePath = @".\Readings\" + DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + ".json";
+                        break;
+                    case "TRANSFEREND":
+                        ExportToJson();
+                        break;
+                    default:
+                        HandleReadings(reading);
+                        break;
+                }
             }
+        }
+
+        /// <summary>
+        /// Handles the reading from the serial port.
+        /// </summary>
+        private static void HandleReadings(string reading)
+        {
+            var parsedString = reading.Split('|');
+            if (parsedString.Length == 2)
+                StorePosition(parsedString);
+            else if (parsedString.Length == 5)
+                StoreReading(parsedString);
         }
 
         /// <summary>
         /// Parses the encoder position from the serial output.
         /// </summary>
-        private static void StorePosition()
+        private static void StorePosition(string[] position)
         {
-            var position = Port.ReadLine().Split('|');
             Entries.Add(new PositionalEntry()
             {
                 EncoderXPos = int.Parse(position[0]),
@@ -82,15 +94,15 @@ namespace SerialReader
         /// <summary>
         /// Parses the reading from the serial output.
         /// </summary>
-        private static void StoreReading()
+        private static void StoreReading(string[] reading)
         {
-            var reading = Port.ReadLine().Split('|');
             Entries.Last().Measurements.Add(new DirectionalMeasurement
             {
-                LeftSensor = int.Parse(reading[0]),
-                RightSensor = int.Parse(reading[1]),
-                AngleHorizontal = int.Parse(reading[2]),
-                AngleVertical = int.Parse(reading[3]),
+                Direction = reading[0],
+                LeftSensor = int.Parse(reading[1]),
+                RightSensor = int.Parse(reading[2]),
+                AngleHorizontal = int.Parse(reading[3]),
+                AngleVertical = int.Parse(reading[4]),
             });
         }
 
@@ -101,6 +113,7 @@ namespace SerialReader
         {
             var json = JsonConvert.SerializeObject(Entries);
             File.WriteAllText(FilePath, json);
+            Entries.Clear();
         }
     }
 }
