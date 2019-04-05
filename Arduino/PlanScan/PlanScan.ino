@@ -30,13 +30,15 @@ class MenuNode
 class DirectionalMeasurements 
 {
   public:
+    String direction;
     int leftReading;
     int rightReading;
     int angleHorizontal;
     int angleVertical;
   
-    DirectionalMeasurements(int left, int right, int angleH, int angleV)
+    DirectionalMeasurements(String direction, int left, int right, int angleH, int angleV)
     { 
+      direction = direction;
       leftReading = left;
       rightReading = right;
       angleHorizontal = angleH;
@@ -202,7 +204,7 @@ void takeReading() {
   //Forward
   triggerServo(FORWARD);
   delay(1000);
-  DirectionalMeasurements measurementForward =  DirectionalMeasurements(getDistance(sonarA), getDistance(sonarB),
+  DirectionalMeasurements measurementForward =  DirectionalMeasurements("Forward", getDistance(sonarA), getDistance(sonarB),
                                                                   horizontalServo.read(), verticalServo.read()); 
   setDistance(measurementForward.leftReading, measurementForward.rightReading, "F");  
   delay(500);
@@ -210,7 +212,7 @@ void takeReading() {
   //Right
   triggerServo(RIGHT);
   delay(1000);
-  DirectionalMeasurements measurementRight =  DirectionalMeasurements(getDistance(sonarA), getDistance(sonarB),
+  DirectionalMeasurements measurementRight =  DirectionalMeasurements("Right", getDistance(sonarA), getDistance(sonarB),
                                                                   horizontalServo.read(), verticalServo.read()); 
   setDistance(measurementRight.leftReading, measurementRight.rightReading, "R");
   delay(500);
@@ -218,7 +220,7 @@ void takeReading() {
   //Back
   triggerServo(BACK);
   delay(1000);
-  DirectionalMeasurements measurementBack =  DirectionalMeasurements(getDistance(sonarA), getDistance(sonarB),
+  DirectionalMeasurements measurementBack =  DirectionalMeasurements("Back", getDistance(sonarA), getDistance(sonarB),
                                                                   horizontalServo.read(), verticalServo.read()); 
   setDistance(measurementBack.leftReading, measurementBack.rightReading, "B");
   delay(500);
@@ -226,7 +228,7 @@ void takeReading() {
   //Left
   triggerServo(LEFT);
   delay(1000);
-  DirectionalMeasurements measurementLeft =  DirectionalMeasurements(getDistance(sonarA), getDistance(sonarB),
+  DirectionalMeasurements measurementLeft =  DirectionalMeasurements("Left", getDistance(sonarA), getDistance(sonarB),
                                                                   horizontalServo.read(), verticalServo.read()); 
   setDistance(measurementLeft.leftReading, measurementLeft.rightReading, "L");
   delay(500);
@@ -234,7 +236,7 @@ void takeReading() {
   //Up
   triggerServo(UP);
   delay(1000);
-  DirectionalMeasurements measurementUp =  DirectionalMeasurements(getDistance(sonarA), getDistance(sonarB),
+  DirectionalMeasurements measurementUp =  DirectionalMeasurements("Up", getDistance(sonarA), getDistance(sonarB),
                                                                   horizontalServo.read(), verticalServo.read()); 
   setDistance(measurementUp.leftReading, measurementUp.rightReading, "U");
   delay(500);
@@ -318,7 +320,7 @@ void func2(){
   
 }
 void exportReadings(){
-  
+  exportData();
 }
 
 /*
@@ -377,8 +379,6 @@ void checkMenuButtons()
     {
       lastMenuButtonPress = millis();
       menuList[selectedMenuNode].action();
-      Serial.print("Center button selected");
-      Serial.println();
     }  
   }
 }
@@ -392,13 +392,11 @@ void exportData() {
   Serial.println("TRANSFERSTART");
 
   for(int i = 0; i < positions->size(); i++){
-    PositionalEntry entry = positions->get(i);
-    Serial.println("POSITION");
+    PositionalEntry entry = positions->get(i);    
     Serial.print(entry.encoderX); Serial.print("|");
     Serial.println(entry.encoderY);
     
     for(int j = 0; j < 5; j++){
-      Serial.println("READING");
       exportDirections(entry, j);
     }   
   }
@@ -411,6 +409,7 @@ void exportData() {
  */
 void exportDirections(PositionalEntry entry, int index){
     DirectionalMeasurements measurement = entry.directions[index];
+    Serial.print(measurement.direction); Serial.print("|");
     Serial.print(measurement.leftReading); Serial.print("|"); 
     Serial.print(measurement.rightReading); Serial.print("|"); 
     Serial.print(measurement.angleHorizontal); Serial.print("|");
