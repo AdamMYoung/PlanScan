@@ -301,7 +301,7 @@ int getDistance(NewPing sonar) {
 MenuNode menuList[3] =
 {
   MenuNode("PlanScan (1/3)", "Start Scan", startScan),
-  MenuNode("PlanScan (2/3)", "Measurements", func2),
+  MenuNode("PlanScan (2/3)", "Measurements", listMeasurements),
   MenuNode("PlanScan (3/3)", "Export Data", exportReadings)
 };
 
@@ -316,9 +316,118 @@ void startScan(){
   showNodeOnDisplay();
 }
 
-void func2(){
-  
+void setList(int pos, int posX, int posY, String dir, int leftMeasurement, int rightMeasurement)
+{
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(pos);
+  lcd.print(":");
+  lcd.print(posX);
+  lcd.print(",");
+  lcd.print(posY);
+  lcd.setCursor(0, 1);
+  lcd.print(dir);
+  lcd.print(":");
+  lcd.print(leftMeasurement);
+  lcd.print(",");
+  lcd.print(rightMeasurement);
 }
+
+String getDirection(int dir)
+{
+  switch(dir)
+  {
+    case 0: return "F";
+    case 1: return "R";
+    case 2: return "B";
+    case 3: return "L";
+    case 4: return "U";
+  }
+}
+
+// Measurements menu
+void listMeasurements()
+{
+  unsigned long lastListButtonPress = millis();
+  
+  //need to keep track of current measurements/positions etc.
+  int maxPosition = positions->size();
+  if (maxPosition == 0)
+  {
+    setMenu("No measurements", "to list.");
+    while(millis() < lastListButtonPress + 1000)
+    {
+      readEncoderA();
+      readEncoderB();
+    }
+    return;
+  }
+  
+  int currentPositionIndex = 0;
+  int currentDirectionIndex = 0;
+
+  PositionalEntry currentPosition = positions->get(currentPositionIndex);
+  DirectionalMeasurements currentDirection = currentPosition.directions[currentDirectionIndex];
+  
+  setList(currentPositionIndex, currentPosition.encoderX, currentPosition.encoderY,
+          getDirection(currentDirectionIndex), currentDirection.leftReading, currentDirection.rightReading);
+  while (true)
+  {
+    readEncoderA();
+    readEncoderB();
+    if (millis() >= lastListButtonPress + 300)
+    {
+      int directionalInput = analogRead(directionalButtonPin);
+      if (directionalInput > 1000) // right button press
+      {
+        if (currentDirectionIndex == 4)
+        {
+          if (currentPositionIndex != maxPosition - 1) // go to next position
+          {
+            currentPositionIndex = currentPositionIndex + 1;
+            currentDirectionIndex = 0;
+            currentPosition = positions->get(currentPositionIndex);
+            currentDirection = currentPosition.directions[currentDirectionIndex];
+          }
+        }
+        else // go to next direction
+        {
+          currentDirectionIndex = currentDirectionIndex + 1;
+          currentDirection = currentPosition.directions[currentDirectionIndex];
+        }
+        setList(currentPositionIndex, currentPosition.encoderX, currentPosition.encoderY,
+          getDirection(currentDirectionIndex), currentDirection.leftReading, currentDirection.rightReading);
+        delay(300);
+      }
+      else if (directionalInput > 500) // left button press
+      {
+        if (currentDirectionIndex == 0)
+        {
+          if (currentPositionIndex != 0) // go to previous position
+          {
+            currentPositionIndex = currentPositionIndex - 1;
+            currentDirectionIndex = 4;
+            currentPosition = positions->get(currentPositionIndex);
+            currentDirection = currentPosition.directions[currentDirectionIndex];
+          }
+        }
+        else //go to previous direction
+        {
+          currentDirectionIndex = currentDirectionIndex - 1;
+          currentDirection = currentPosition.directions[currentDirectionIndex];
+        }
+        setList(currentPositionIndex, currentPosition.encoderX, currentPosition.encoderY,
+          getDirection(currentDirectionIndex), currentDirection.leftReading, currentDirection.rightReading);
+        delay(300);
+      }
+      else if (digitalRead(selectButtonPin) == HIGH)
+      {
+        return; // exit menu
+      }
+    }
+  }
+}
+
 void exportReadings(){
   exportData();
 }
@@ -365,20 +474,21 @@ void checkMenuButtons()
   if (millis() >= lastMenuButtonPress + 300)
   {
     int directionalInput = analogRead(directionalButtonPin);
-    if (directionalInput > 500 && directionalInput < 600)
+    if (directionalInput > 1000)
     {
-      lastMenuButtonPress = millis();
-      selectLeft();
-    }
-    else if (directionalInput > 1000 && directionalInput < 1100)
-    {
-      lastMenuButtonPress = millis();
       selectRight();
+      lastMenuButtonPress = millis();
+    }
+    else if (directionalInput > 500)
+    {
+      selectLeft();
+      lastMenuButtonPress = millis();
     }
     else if (digitalRead(selectButtonPin) == HIGH)
     {
-      lastMenuButtonPress = millis();
       menuList[selectedMenuNode].action();
+      lastMenuButtonPress = millis();
+      showNodeOnDisplay();
     }  
   }
 }
