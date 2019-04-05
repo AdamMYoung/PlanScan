@@ -1,5 +1,4 @@
 import { Coordinate } from './coordinate';
-import { Path, Point, PointText } from 'paper';
 import { Wall, Direction } from './wall';
 
 export class Room {
@@ -11,8 +10,6 @@ export class Room {
 
     constructor(walls: Wall[]) {
         this.walls = walls;
-
-
 
         this.walls.forEach(wall => {
             switch (wall.direction) {
@@ -33,21 +30,12 @@ export class Room {
     }
 
     draw() {
-        /*
-        for (var i = 0; i < 20; i++) {
-            this.walls.forEach(wall => {
-                wall.extend(10);
-            });
-        }
-        */
-
         this.walls.forEach(wall => {
             wall.extend(20);
         });
-
     }
 
-    detectIntersection() {
+    detectIntersections() {
         //Foreach wall
         // L, R = Find closest intersecting F, B (vice versa)
         // Edit both paths to make them meet at intersecting coordinate
@@ -65,12 +53,39 @@ export class Room {
 
                 this.leftWalls.forEach(leftWall => {
                     if (wall.path.intersects(leftWall.path)) {
-                        rightIntersections.push(leftWall);
+                        leftIntersections.push(leftWall);
                     }
                 });
 
                 var closestRight = wall.findClosestWall(rightIntersections);
                 var closestLeft = wall.findClosestWall(leftIntersections);
+
+                var rightIntersectingPoint = wall.path.getIntersections(closestRight.path)[0].point;
+                var leftIntersectingPoint = wall.path.getIntersections(closestLeft.path)[0].point;
+
+                if (wall.coordinates[0].x > wall.coordinates[1].x) {
+                    // First coordinate is on the right, second left
+                    wall.coordinates[0] = new Coordinate(
+                        rightIntersectingPoint.x,
+                        rightIntersectingPoint.y
+                    );
+
+                    wall.coordinates[1] = new Coordinate(
+                        leftIntersectingPoint.x,
+                        leftIntersectingPoint.y
+                    );
+                } else {
+                    // First coordinate is on the left, second right
+                    wall.coordinates[0] = new Coordinate(
+                        leftIntersectingPoint.x,
+                        leftIntersectingPoint.y
+                    );
+
+                    wall.coordinates[1] = new Coordinate(
+                        rightIntersectingPoint.x,
+                        rightIntersectingPoint.y
+                    );
+                }
 
             } else {
                 const forwardIntersections: Wall[] = [];
@@ -90,7 +105,39 @@ export class Room {
 
                 var closestForward = wall.findClosestWall(forwardIntersections);
                 var closestBackward = wall.findClosestWall(backwardIntersections);
+
+                var forwardIntersectingPoint = wall.path.getIntersections(closestForward.path)[0].point;
+                var backwardIntersectingPoint = wall.path.getIntersections(closestBackward.path)[0].point;
+
+                if (wall.coordinates[0].y > wall.coordinates[1].y) {
+                    // First coordinate is on the back, second front
+                    wall.coordinates[0] = new Coordinate(
+                        backwardIntersectingPoint.x,
+                        backwardIntersectingPoint.y
+                    );
+
+                    wall.coordinates[1] = new Coordinate(
+                        forwardIntersectingPoint.x,
+                        forwardIntersectingPoint.y
+                    );
+                } else {
+                    // First coordinate is on the front, second back
+                    wall.coordinates[0] = new Coordinate(
+                        forwardIntersectingPoint.x,
+                        forwardIntersectingPoint.y
+                    );
+
+                    wall.coordinates[1] = new Coordinate(
+                        backwardIntersectingPoint.x,
+                        backwardIntersectingPoint.y
+                    );
+                }
             }
+        });
+
+        console.log("Redrawing Walls!")
+        this.walls.forEach(wall => {
+            wall.draw();
         });
     }
 }

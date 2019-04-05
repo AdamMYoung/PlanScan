@@ -1,5 +1,5 @@
 import { Coordinate } from './coordinate';
-import { Path, Point, PointText } from 'paper';
+import { Path, Point, PointText, CurveLocation } from 'paper';
 
 export class Wall {
     path: Path;
@@ -139,7 +139,7 @@ export class Wall {
         walls.forEach(wall => {
             var xDistance = this.center.x + wall.center.x;
             var yDistance = this.center.y + wall.center.y;
-            var distance = Math.sqrt((xDistance * xDistance) + (yDistance * yDistance));
+            var distance = this.pythagorasTheorem(xDistance, yDistance);
 
             if (distance < closestDistance) {
                 closestDistance = distance;
@@ -148,6 +148,10 @@ export class Wall {
         });
 
         return closestWall;
+    }
+
+    pythagorasTheorem(a: number, b: number) {
+        return Math.sqrt((a * a) + (b * b));
     }
 }
 
