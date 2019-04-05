@@ -4,6 +4,8 @@ import { PaperScope, Project, Path, Point, view, Matrix, Rectangle, Size } from 
 import { Coordinate } from 'src/app/classes/coordinate';
 import { Wall } from 'src/app/classes/wall';
 import { Room } from '../../classes/room';
+import { PositionalEntry } from '../../classes/positionalEntry';
+import {JsonObject, JsonProperty, JsonConvert} from "json2typescript";
 
 @Component({
   selector: 'app-paper-canvas',
@@ -14,6 +16,7 @@ export class PaperCanvasComponent implements OnInit {
   @ViewChild('canvasElement') canvasElement: ElementRef;
   scope: PaperScope;
   project: Project;
+  file: File;
 
   constructor() { }
 
@@ -36,25 +39,32 @@ export class PaperCanvasComponent implements OnInit {
       new Wall(origin, Direction.Left, [20, 20]),
     ];
 
-    /*
-    // Path setup
-    const path = new Path();
-    path.strokeColor = 'black';
-
-    // Create Points from Coordinates
-    const start = new Point(240,240);
-    const end = new Point(260, 260);
-
-    // Draw line
-    path.moveTo(start);
-    path.lineTo(end);
-    */
-
     const room = new Room(walls);
     room.draw();
+    room.detectIntersections();
     
-    console.log(room.walls[0].path.intersects(room.walls[3].path));
+  }
+
+  fileChange(event: EventTarget) {
+    let eventObj: MSInputMethodContext = <MSInputMethodContext> event;
+    let target: HTMLInputElement = <HTMLInputElement> eventObj.target;
+    let files: FileList = target.files;
+    this.file = files[0];
     
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var contents = e.target.result;
+
+      let jsonConvert: JsonConvert = new JsonConvert();
+      var entries = JSON.parse(contents);
+
+      entries.forEach(entry => {
+        let object: PositionalEntry = jsonConvert.deserializeObject(entry, PositionalEntry);
+        console.log(object);
+      });
+    };
+
+    reader.readAsText(this.file);   
   }
 
 }
