@@ -61,7 +61,8 @@ namespace SerialReader
                     StoreReading();
                     break;
                 default:
-                    throw new NotImplementedException();
+                    Console.WriteLine("Invalid Type");
+                    break;
             }
         }
 
