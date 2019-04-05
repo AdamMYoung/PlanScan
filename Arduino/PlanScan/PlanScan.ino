@@ -355,26 +355,31 @@ void selectRight()
   }
 }
 
+unsigned long lastMenuButtonPress = millis();
+
 /*
  * Checks each menu button for interaction, and calls associated methods if selected.
  */
 void checkMenuButtons()
 {
-  int directionalInput = analogRead(directionalButtonPin);
-  if (directionalInput > 500 && directionalInput < 600)
+  if (millis() >= lastMenuButtonPress + 300)
   {
-    selectLeft();
-    delay(300);
-  }
-  else if (directionalInput > 1000 && directionalInput < 1100)
-  {
-    selectRight();
-    delay(300);
-  }
-  else if (digitalRead(selectButtonPin) == HIGH)
-  {
-    menuList[selectedMenuNode].action();
-    Serial.println();
+    int directionalInput = analogRead(directionalButtonPin);
+    if (directionalInput > 500 && directionalInput < 600)
+    {
+      lastMenuButtonPress = millis();
+      selectLeft();
+    }
+    else if (directionalInput > 1000 && directionalInput < 1100)
+    {
+      lastMenuButtonPress = millis();
+      selectRight();
+    }
+    else if (digitalRead(selectButtonPin) == HIGH)
+    {
+      lastMenuButtonPress = millis();
+      menuList[selectedMenuNode].action();
+    }  
   }
 }
 
