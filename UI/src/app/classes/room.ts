@@ -31,17 +31,17 @@ export class Room {
 
     draw() {
         this.walls.forEach(wall => {
-            wall.extend(20);
+            wall.extend(100);
         });
     }
 
     detectIntersections() {
-        //Foreach wall
+        // Foreach wall
         // L, R = Find closest intersecting F, B (vice versa)
         // Edit both paths to make them meet at intersecting coordinate
 
         this.walls.forEach(wall => {
-            if (wall.direction == Direction.Forward || wall.direction == Direction.Backward) {
+            if (wall.direction === Direction.Forward || wall.direction === Direction.Backward) {
                 const rightIntersections: Wall[] = [];
                 const leftIntersections: Wall[] = [];
 
@@ -57,11 +57,11 @@ export class Room {
                     }
                 });
 
-                var closestRight = wall.findClosestWall(rightIntersections);
-                var closestLeft = wall.findClosestWall(leftIntersections);
+                const closestRight = wall.findClosestWall(rightIntersections);
+                const closestLeft = wall.findClosestWall(leftIntersections);
 
-                var rightIntersectingPoint = wall.path.getIntersections(closestRight.path)[0].point;
-                var leftIntersectingPoint = wall.path.getIntersections(closestLeft.path)[0].point;
+                const rightIntersectingPoint = wall.path.getIntersections(closestRight.path)[0].point;
+                const leftIntersectingPoint = wall.path.getIntersections(closestLeft.path)[0].point;
 
                 if (wall.coordinates[0].x > wall.coordinates[1].x) {
                     // First coordinate is on the right, second left
@@ -103,11 +103,11 @@ export class Room {
                     }
                 });
 
-                var closestForward = wall.findClosestWall(forwardIntersections);
-                var closestBackward = wall.findClosestWall(backwardIntersections);
+                const closestForward = wall.findClosestWall(forwardIntersections);
+                const closestBackward = wall.findClosestWall(backwardIntersections);
 
-                var forwardIntersectingPoint = wall.path.getIntersections(closestForward.path)[0].point;
-                var backwardIntersectingPoint = wall.path.getIntersections(closestBackward.path)[0].point;
+                const forwardIntersectingPoint = wall.path.getIntersections(closestForward.path)[0].point;
+                const backwardIntersectingPoint = wall.path.getIntersections(closestBackward.path)[0].point;
 
                 if (wall.coordinates[0].y > wall.coordinates[1].y) {
                     // First coordinate is on the back, second front
@@ -135,9 +135,10 @@ export class Room {
             }
         });
 
-        console.log("Redrawing Walls!")
+        console.log('Redrawing Walls!');
         this.walls.forEach(wall => {
             wall.draw();
+            wall.getLength();
         });
     }
 }

@@ -1,15 +1,15 @@
-import {JsonObject, JsonProperty} from "json2typescript";
+import {JsonObject, JsonProperty} from 'json2typescript';
 
-@JsonObject("Measurement")
+@JsonObject('Measurement')
 export class Measurement {
-    @JsonProperty("AngleHorizontal", Number)
+    @JsonProperty('AngleHorizontal', Number)
     angleHorizontal: number = undefined;
-    @JsonProperty("AngleVertical", Number)
+    @JsonProperty('AngleVertical', Number)
     angleVertical: number = undefined;
-    @JsonProperty("Direction", String)
+    @JsonProperty('Direction', String)
     direction: string = undefined;
-    @JsonProperty("LeftSensor", Number)
+    @JsonProperty('LeftSensor', Number)
     leftSensor: number = undefined;
-    @JsonProperty("RightSensor", Number)
+    @JsonProperty('RightSensor', Number)
     rightSensor: number = undefined;
 }

@@ -5,7 +5,7 @@ import { Coordinate } from 'src/app/classes/coordinate';
 import { Wall } from 'src/app/classes/wall';
 import { Room } from '../../classes/room';
 import { PositionalEntry } from '../../classes/positionalEntry';
-import {JsonObject, JsonProperty, JsonConvert} from "json2typescript";
+import {JsonObject, JsonProperty, JsonConvert} from 'json2typescript';
 
 @Component({
   selector: 'app-paper-canvas',
@@ -33,7 +33,7 @@ export class PaperCanvasComponent implements OnInit {
     // Draw walls
     const origin = new Coordinate(this.scope.view.center.x, this.scope.view.center.y);
     const walls = [
-      new Wall(origin, Direction.Forward, [20, 20]),
+      new Wall(origin, Direction.Forward, [30, 30]),
       new Wall(origin, Direction.Backward, [20, 20]),
       new Wall(origin, Direction.Right, [20, 20]),
       new Wall(origin, Direction.Left, [20, 20]),
@@ -42,29 +42,30 @@ export class PaperCanvasComponent implements OnInit {
     const room = new Room(walls);
     room.draw();
     room.detectIntersections();
-    
   }
 
   fileChange(event: EventTarget) {
-    let eventObj: MSInputMethodContext = <MSInputMethodContext> event;
-    let target: HTMLInputElement = <HTMLInputElement> eventObj.target;
-    let files: FileList = target.files;
+    const eventObj: MSInputMethodContext = <MSInputMethodContext> event;
+    const target: HTMLInputElement = <HTMLInputElement> eventObj.target;
+    const files: FileList = target.files;
     this.file = files[0];
-    
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var contents = e.target.result;
 
-      let jsonConvert: JsonConvert = new JsonConvert();
-      var entries = JSON.parse(contents);
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const contents = (<any>e).target.result;
+
+      console.log(contents);
+
+      const jsonConvert: JsonConvert = new JsonConvert();
+      const entries = JSON.parse(contents);
 
       entries.forEach(entry => {
-        let object: PositionalEntry = jsonConvert.deserializeObject(entry, PositionalEntry);
+        const object: PositionalEntry = jsonConvert.deserializeObject(entry, PositionalEntry);
         console.log(object);
       });
     };
 
-    reader.readAsText(this.file);   
+    reader.readAsText(this.file);
   }
 
 }

@@ -80,14 +80,11 @@ export class Wall {
         // Draw line
         this.path.moveTo(start);
         this.path.lineTo(end);
-
-        // Line description
-        //this.placeText("1m", this.path);
     }
 
     extend(extension: number) {
 
-        if (this.direction == Direction.Forward || this.direction == Direction.Backward) {
+        if (this.direction === Direction.Forward || this.direction === Direction.Backward) {
             // +-1 x to both points
             if (this.coordinates[0].x > this.coordinates[1].x) {
                 this.coordinates[0].x += extension;
@@ -110,8 +107,16 @@ export class Wall {
         this.draw();
     }
 
+    getLength() {
+        if (this.direction === Direction.Forward || this.direction === Direction.Backward) {
+            this.placeText('5m', this.path);
+        } else {
+            this.placeText('7m', this.path);
+        }
+    }
+
     placeText(str, path) {
-        var text = new PointText(path.getPointAt(this.path.length / 2));
+        const text = new PointText(path.getPointAt(this.path.length / 2));
         text.fillColor = 'black';
         text.content = str;
 
@@ -133,13 +138,13 @@ export class Wall {
     }
 
     findClosestWall(walls: Wall[]) {
-        var closestDistance = Number.MAX_SAFE_INTEGER;
-        var closestWall = null;
+        let closestDistance = Number.MAX_SAFE_INTEGER;
+        let closestWall = null;
 
         walls.forEach(wall => {
-            var xDistance = this.center.x + wall.center.x;
-            var yDistance = this.center.y + wall.center.y;
-            var distance = this.pythagorasTheorem(xDistance, yDistance);
+            const xDistance = this.center.x + wall.center.x;
+            const yDistance = this.center.y + wall.center.y;
+            const distance = this.pythagorasTheorem(xDistance, yDistance);
 
             if (distance < closestDistance) {
                 closestDistance = distance;
