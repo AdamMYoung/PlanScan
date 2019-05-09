@@ -48,6 +48,7 @@ export class Wall {
 
         this.coordinates.push(this.calculateCoordinate(leftSensorOrigin, angle, distances[0]));
         this.coordinates.push(this.calculateCoordinate(rightSensorOrigin, angle, distances[1]));
+
         this.center = new Coordinate(
             Math.round((this.coordinates[0].x + this.coordinates[1].x) / 2),
             Math.round((this.coordinates[0].y + this.coordinates[1].y) / 2)
@@ -108,11 +109,7 @@ export class Wall {
     }
 
     getLength() {
-        if (this.direction === Direction.Forward || this.direction === Direction.Backward) {
-            this.placeText('5m', this.path);
-        } else {
-            this.placeText('7m', this.path);
-        }
+        this.placeText((this.path.length / 100).toFixed(2) + 'M', this.path);
     }
 
     placeText(str, path) {

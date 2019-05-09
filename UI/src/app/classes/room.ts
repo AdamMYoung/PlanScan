@@ -31,7 +31,7 @@ export class Room {
 
     draw() {
         this.walls.forEach(wall => {
-            wall.extend(100);
+            wall.extend(1000);
         });
     }
 
@@ -140,5 +140,10 @@ export class Room {
             wall.draw();
             wall.getLength();
         });
+    }
+
+    detectDuplicates() {
+        // Compare same direction walls
+        // If within 50cm, create new wall inbetween?
     }
 }
